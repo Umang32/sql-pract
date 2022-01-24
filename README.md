@@ -1,0 +1,2 @@
+# sql-pract
+Ania thesis
