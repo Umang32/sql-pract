@@ -1,0 +1,403 @@
+select *
+from A
+order by conm 
+
+
+select *
+from B    
+where Name like 'EQT CORPORATION' and Female like 'Yes'
+
+select * ,case when at = 0 then null
+else (oibdp-dp)/at end as roa
+from A
+
+select *,	case when at = 0 then null
+else ((prcc_f*csho)+at-ceq-txdb)/at end as tobins_q 
+from A
+
+
+
+
+alter table A
+add Year_from_datadate as left(datadate,4)
+
+alter table A
+add Female varchar(50) null
+
+
+alter table A
+drop column Female
+
+insert into C (Female)
+select 1
+from B join A on B.CUSIP = A.cusip and A.Year_from_datadate = B.year
+where B.Female like 'Yes'
+
+Select A.*,B.Female
+INTO A2
+FROM A
+Left Join B on B.cusip=A.cusip and B.Year=A.Year_from_datadate
+Where B.Female like 'Yes'
+
+alter table A
+alter column sic float
+
+alter table A_5
+alter column sale money
+
+select *
+from A2
+
+select *
+into A3
+from A
+
+Update A
+Set A.Female=LTRIM(RTRIM(B.Female))
+from A
+Inner Join B on B.cusip=A.cusip and A.Year_from_datadate=B.Year
+Where B.Female like 'Yes'
+
+update B
+set Female = 'No'
+where Female = ''
+
+
+Update B
+set RTRIM Female
+
+select *
+from B2
+where Female like ''
+
+-- 10,574 rows
+select count(B.FULLNAME) as size_of_board, B.year, B.name, B.CUSIP
+from [dbo].[B]
+group by B.year, B.name, B.CUSIP
+
+
+-- Run this for Size_board
+select count(B.FULLNAME) as size_of_board, B.year, B.name, B.CUSIP as cid, A.*
+into A_size_board
+from [dbo].[B] left join A on A.cusip = B.CUSIP and A.Year_from_datadate = B.year
+where A.gvkey is not null 
+group by B.year, B.name, B.CUSIP,
+A.gvkey, A.datadate, A.fyear, A.indfmt, A.consol, A.popsrc, A.datafmt, A.cusip, A.conm, A.curcd
+,A.at, A.ceq, A.csho, A.dp, A.oibdp, A.sale, A.txdb, A.costat, A.prcc_f, A.sic, A.spcsrc, A.Year_from_datadate, A.Female
+
+
+-- almost 11,000 companies per year
+select count (distinct cusip), Year_from_datadate
+from A
+group by Year_from_datadate
+
+
+-- almost 1500 companies by year
+select count (distinct cusip), year
+from B
+group by year
+
+
+select *, case when sic = 50 or sic =51  then 'Wholesale Trade'
+when sic >= 40 and sic <= 49  then 'Transportation & Public Utilities' 
+when sic >= 01 and sic<= 09 then 'Agricultures, Forest, Fishing'
+when sic>=10 and sic<= 14 then 'Mining' 
+when sic>= 15 and sic<= 17 then 'Construction'
+when sic>=20 and sic<=39 then 'Manufactring'
+when sic>=52 and sic<=59 then 'Retail Trade'
+when sic>=60 and sic<=67 then 'Finance, Insurance, Real Estate'
+when sic>=70 and sic<=89 then 'Services'
+when sic>=91 and sic<=99 then 'Public Administration' 
+else 'none' END as  Business_segments_Industry 
+into A_5
+from A_size_board
+
+select *, left(sic,2) as sic_2
+into A_size_board2
+from A_size_board
+
+
+drop table A_size_board
+
+select  log(sale+1) as lg
+from  A_5
+
+select *
+from A_5
+
+select *, case when Female like 'Yes' then 1
+else 0 end as Count_Female
+into B2
+from B  
+
+select  sum(Count_Female) as a, Name, year, CUSIP
+from B2
+group by Name, year, CUSIP
+order by a desc
+
+
+select sum(B2.Count_Female) as num_of_Females, B2.year as y, B2.name as nam, B2.CUSIP as cid2, A_5.*
+into A_10
+from B2 left join A_5 on A_5.cusip = B2.CUSIP and A_5.Year_from_datadate = B2.year
+where A_5.gvkey is not null 
+group by B2.year, B2.name, B2.CUSIP,
+A_5.name, A_5.gvkey, A_5.datadate, A_5.fyear, A_5.indfmt, A_5.consol, A_5.popsrc, A_5.datafmt, A_5.cusip, A_5.conm, A_5.curcd, A_5.year, A_5.cid
+,A_5.at, A_5.ceq, A_5.csho, A_5.dp, A_5.oibdp, A_5.sale, A_5.txdb, A_5.costat, A_5.prcc_f, A_5.sic, A_5.spcsrc, A_5.Year_from_datadate, A_5.Female, A_5.size_of_board, A_5.Business_segments_Industry
+
+ALTER TABLE A_10
+drop column y, nam, cid2, name, datafmt, curcd
+
+select *, log(sale + 1) as Log_of_Sale
+into A_11
+from A_10
+
+select *, case when at = 0 then null
+else (oibdp-dp)/at end as roa
+into A_12
+from A_11
+
+select *, case when at = 0 then null
+else ((prcc_f*csho)+at-ceq-txdb)/at end as tobins_q 
+into A_14
+from A_12
+
+select *
+into A_15
+from A_14
+
+alter table A_14
+drop column year
+
+update A_14
+set Female = 'No'
+where Female is Null 
+
+select *, A_15.tobins_q as old_T , A_15.Year_from_datadate as old_year
+from A_14 join A_15 on A_14.cid = A_15.cusip and A_14.Year_from_datadate = (A_15.Year_from_datadate +1) 
+
+select *
+from A_14
+
+
+select *
+from A_15
+order by tobins_q
+
+select *, case when classification like 'I' then 1
+when classification like 'I-NED' then 1
+else 0 end as count_of_classification
+into B3
+from 
+B
+
+select sum(count_of_classification) as number_of_independent_directors, count(classification) as number_of_total_classification, sum(cast(count_of_classification as decimal(10,2)))/count(classification) as percent_of_independent_director , Name, B3.CUSIP as cid, year, A_15.*
+into A_20
+from B3 left join A_15 on A_15.cusip = B3.CUSIP and A_15.Year_from_datadate = B3.year
+where A_15.gvkey is not null 
+group by B3.year, B3.name, B3.CUSIP,
+A_15.conm, A_15.gvkey, A_15.datadate, A_15.fyear, A_15.indfmt, A_15.consol, A_15.popsrc, A_15.cusip, A_15.conm
+,A_15.at, A_15.ceq, A_15.csho, A_15.dp, A_15.oibdp, A_15.sale, A_15.txdb, A_15.costat, A_15.prcc_f, A_15.sic, A_15.spcsrc, A_15.Year_from_datadate, A_15.Female, A_15.size_of_board, A_15.Business_segments_Industry
+, A_15.num_of_Females, A_15.Log_of_Sale, A_15.roa, A_15.tobins_q
+
+
+alter table A_20
+alter column conm  name
+
+sp_rename 'A_20.conm' , 'name', 'COLUMN'
+
+select A_20.* , Year_from_datadate as new_year, cusip as cid , name as nom,tobins_q as tq, LAG(tobins_q, 1,0) over (partition by cusip order by year, cusip) as last_year_tobins_q
+into A_25
+from A_20
+
+
+alter table A_25
+drop column nom
+
+select *
+from A_30
+where cusip like '525327102'
+order by year
+
+
+
+select name, cusip, year, count(cusip) as c
+from A_30
+group by name, cusip, year
+having count(cusip) >1 
+order by c desc
+
+select conm, cusip, Year_from_datadate, count(cusip) as c
+from A
+group by conm, cusip, Year_from_datadate
+having count(cusip) = 2
+order by c desc
+
+
+
+select cusip
+from A_30
+where cusip not in
+(
+select max(cusip)
+from A_30
+group by name, year)
+--having count(cusip) = 2
+
+WITH CTE AS(
+   SELECT *,
+       RN = ROW_NUMBER()OVER(PARTITION BY name, year, cusip ORDER BY name)
+   FROM A_30
+)
+DELETE FROM CTE WHERE RN > 1
+
+
+
+select name, cusip, year, count(cusip) as c
+from A_30
+group by name, cusip, year
+having count(cusip) = 2
+order by c desc
+
+select A_30.* , Year_from_datadate as new_year, cusip as cid , name as nom,tobins_q as tq, LAG(roa, 1,0) over (partition by cusip order by year, cusip) as last_year_roa
+into A_35
+from A_30
+
+select*, log(at) as log_of_at
+into A_40
+from A_35
+
+select *
+into A_40_without_female
+from A_40
+where Female like 'No'
+
+select *
+into A_40_with_female
+from A_40
+where Female like 'Yes'
+
+select *
+from A_40_with_female
+
+select *, 1 as female_non_membership
+from B
+where Female like 'Yes' and Nom_membership like 'Chair'
+
+select * , case when Female like 'Yes' and Nom_membership like 'Member' then 1
+else 0 end as female_non_membersip_member
+into B_10
+from B_5
+
+select sum(female_nom_membersip_member) as female_nom_membersip_member, sum(female_nom_membersip_chair) as female_nom_membersip_chair, count(Nom_membership) as total_Nom_membership, B_10.CUSIP as id, B_10.Name as nom, B_10.year, A_40.*
+into A_45
+from B_10 left join A_40 on A_40.cusip = B_10.CUSIP and A_40.Year_from_datadate = B_10.year
+where A_40.gvkey is not null 
+group by B_10.year, B_10.name, B_10.CUSIP,
+ A_40.gvkey, A_40.datadate, A_40.fyear, A_40.indfmt, A_40.consol, A_40.popsrc, A_40.cusip
+,A_40.at, A_40.ceq, A_40.csho, A_40.dp, A_40.oibdp, A_40.sale, A_40.txdb, A_40.costat, A_40.prcc_f, A_40.sic, A_40.spcsrc, A_40.Year_from_datadate, A_40.Female, A_40.size_of_board, A_40.Business_segments_Industry
+, A_40.num_of_Females, A_40.Log_of_Sale, A_40.roa, A_40.tobins_q, A_40.number_of_independent_directors,A_40.number_of_total_classification
+,A_40.percent_of_independent_director,A_40.name, A_40.last_year_tobins_q,A_40.cid,A_40.tq,A_40.last_year_roa,A_40.log_of_at
+
+select *
+from B_10
+
+UPDATE B_10 
+SET Audit_membership = NULL 
+WHERE Audit_membership = ''
+
+
+select *
+from A_45
+
+alter table A_45
+drop column cid, nom, id, year
+
+select * , case when Female like 'Yes' and nom_membership like 'Member' then 1
+when Female like 'Yes' and nom_membership like 'Chair' then 1 else 0 end as female_Nom_membership
+into B_30
+from B_20
+
+select *
+from B_30
+
+alter table B_20
+drop column female_nom_membersip_chair, female_nom_membersip_member
+
+
+select sum(female_Nom_membership) as female_nom_membership, sum(female_comp_membership) as female_comp_membership, sum(female_Audit_membership) as female_Audit_membership, count(Nom_membership) as total_Nom_membership, count(Comp_membership) as total_comp_membership, count(Audit_membership) as total_audit_membership, B_30.CUSIP as id, B_30.Name as nom, B_30.year, A_40.*
+into A_50
+from B_30 left join A_40 on A_40.cusip = B_30.CUSIP and A_40.Year_from_datadate = B_30.year
+where A_40.gvkey is not null 
+group by B_30.year, B_30.name, B_30.CUSIP,
+ A_40.gvkey, A_40.datadate, A_40.fyear, A_40.indfmt, A_40.consol, A_40.popsrc, A_40.cusip
+,A_40.at, A_40.ceq, A_40.csho, A_40.dp, A_40.oibdp, A_40.sale, A_40.txdb, A_40.costat, A_40.prcc_f, A_40.sic, A_40.spcsrc, A_40.Year_from_datadate, A_40.Female, A_40.size_of_board, A_40.Business_segments_Industry
+, A_40.num_of_Females, A_40.Log_of_Sale, A_40.roa, A_40.tobins_q, A_40.number_of_independent_directors,A_40.number_of_total_classification
+,A_40.percent_of_independent_director,A_40.name, A_40.last_year_tobins_q,A_40.cid,A_40.tq,A_40.last_year_roa,A_40.log_of_at
+
+
+select *
+from A_50
+
+ALTER TABLE a_50
+DROP COLUMN ID, NOM, YEAR
+
+
+select *
+into A_50_without_female
+from A_50 
+where Female like 'No'
+
+
+select *
+from B
+where CUSIP like '23332B106' and year like '2013'
+
+select *
+from B
+where classification like 'E'
+
+select *
+from A_50
+
+select *, case when classification like 'I' and Nom_membership not like '' then 1
+else 0 end as Nom_membership_with_I
+into B_35
+from B
+
+select *, case when classification like 'I' and Comp_membership not like '' then 1
+else 0 end as Comp_membership_with_I
+into B_36
+from B_35
+
+select *, case when classification like 'I' and Audit_membership not like '' then 1
+else 0 end as Audit_membership_with_I
+into B_37
+from B_36
+
+select *
+from B_37
+
+select sum(Nom_membership_with_I)
+from B_35
+
+select sum(Nom_membership_with_I) as Nom_membership_with_I, sum(Comp_membership_with_I) as Comp_membership_with_I, sum(Audit_membership_with_I) as Audit_membership_with_I, B_37.CUSIP as id, B_37.Name as nom, B_37.year, A_50.*
+into A_55
+from B_37 left join A_50 on A_50.cusip = B_37.CUSIP and A_50.Year_from_datadate = B_37.year
+where A_50.gvkey is not null 
+group by B_37.year, B_37.name, B_37.CUSIP,
+  A_50.gvkey, A_50.datadate, A_50.fyear, A_50.indfmt, A_50.consol, A_50.popsrc, A_50.cusip
+,A_50.at, A_50.ceq, A_50.csho, A_50.dp, A_50.oibdp, A_50.sale, A_50.txdb, A_50.costat, A_50.prcc_f, A_50.sic, A_50.spcsrc, A_50.Year_from_datadate, A_50.Female, A_50.size_of_board, A_50.Business_segments_Industry
+, A_50.num_of_Females, A_50.Log_of_Sale, A_50.roa, A_50.tobins_q, A_50.number_of_independent_directors,A_50.number_of_total_classification
+,A_50.percent_of_independent_director,A_50.name, A_50.last_year_tobins_q,A_50.cid,A_50.tq,A_50.last_year_roa,A_50.log_of_at
+,A_50.female_nom_membership, A_50.female_comp_membership, A_50.female_Audit_membership,
+A_50.total_Nom_membership,A_50.total_comp_membership,A_50.total_audit_membership
+
+select *
+from A_55
+
+alter table A_55
+drop column nom, id, year
+
+delete 
+from A_55
+where Year_from_datadate like '2013'
